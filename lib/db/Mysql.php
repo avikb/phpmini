@@ -9,9 +9,9 @@ class Mysql implements \gib\util\Transactional
     private $dsn;
     private $dblogin;
     private $dbpassword;
-    private $storeQueryCallback = null;
+    private $storeQueryCallback;
   
-    public function __construct($dsn, $lgn, $pass, $storeQueryCallback)
+    public function __construct($dsn, $lgn, $pass, $storeQueryCallback = null)
     {
         $this->dsn = $dsn;
         $this->dblogin = $lgn;
