@@ -5,10 +5,12 @@ namespace gib\queue\rabbit;
 
 class Channel implements \gib\util\Transactional
 {
+    protected $connection;
     protected $channel;
 
     public function __construct($connection)
     {
+        $this->connection = $connection;
         $this->channel = new \AMQPChannel($connection->getConnection());
     }
 
