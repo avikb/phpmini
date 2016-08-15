@@ -7,9 +7,9 @@ class Consumer extends Channel
 {
     private $queue;
 
-    public function __construct($connection, $queue_name)
+    public function __construct($connection, $queue_name, $params = [])
     {
-        parent::__construct($connection);
+        parent::__construct($connection, $params);
         $this->queue = new \AMQPQueue($this->channel);
         $this->queue->setName($queue_name);
     }
