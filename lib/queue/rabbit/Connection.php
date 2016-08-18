@@ -2,10 +2,9 @@
 
 namespace gib\queue\rabbit;
 
-
 class Connection
 {
-    private $connection;
+    protected $connection;
 
     public function __construct($credentials = array())
     {
@@ -19,11 +18,6 @@ class Connection
             ),
             $credentials
         );
-        // hard code for config
-        if (isset($credentials["user"])) {
-            $credentials["login"] = $credentials["user"];
-        }
-        // ---
         $this->connection = new \AMQPConnection($credentials);
         $this->connection->connect();
     }
@@ -33,7 +27,7 @@ class Connection
         $this->connection->disconnect();
     }
 
-    public function getConnection()
+    public function handle()
     {
         return $this->connection;
     }

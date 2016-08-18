@@ -2,16 +2,24 @@
 
 namespace gib\queue\rabbit;
 
-
 class Consumer extends Channel
 {
-    private $queue;
+    protected $queue;
 
-    public function __construct($connection, $queue_name, $params = [])
+    public function __construct($connection, $queue_name = null, $prefetchCount = null, $args = null)
     {
-        parent::__construct($connection, $params);
+        parent::__construct($connection, $prefetchCount);
         $this->queue = new \AMQPQueue($this->channel);
-        $this->queue->setName($queue_name);
+        if (!empty($queue_name)) {
+            $this->queue->setName($queue_name);
+        } else {
+            // declare new queue
+            $this->queue->setFlags(AMQP_EXCLUSIVE|AMQP_AUTODELETE);
+            $this->queue->declare();
+        }
+        if (is_array($args)) {
+            $this->queue->setArguments($args);
+        }
     }
 
     public function __destruct()
@@ -19,28 +27,39 @@ class Consumer extends Channel
         $this->queue = null;
     }
 
-    public function pop()
+    public function pop($autoAck = false)
     {
-        return $this->queue->get();
+        return $this->queue->get($autoAck ? AMQP_AUTOACK : 0);
     }
 
-    public function consume($callback)
+    public function consume($callback, bool $asObject = false)
     {
         $this->callback = $callback;
-        $func = function ($env) {
-            call_user_func($this->callback, $env->getBody());
+        $func = function ($env) use ($asObject) {
+            $ret = call_user_func($this->callback, $asObject ? $env : $env->getBody());
             $this->ack($env);
+            return $ret;
         };
-        $this->queue->consume($func);
+        return $this->queue->consume($func);
     }
 
-    public function ack(&$env)
+    public function ack($env)
     {
         $this->queue->ack($env->getDeliveryTag());
     }
 
-    public function nack(&$env)
+    public function nack($env)
     {
         $this->queue->nack($env->getDeliveryTag());
+    }
+
+    public function getQueueName()
+    {
+        return $this->queue->getName();
+    }
+
+    public function handle()
+    {
+        return $this->queue;
     }
 }

@@ -2,21 +2,15 @@
 
 namespace gib\queue\rabbit;
 
-
 class Producer extends Channel
 {
-    private $exchange;
-    private $routing_key;
-    private $delivery_mode;
+    protected $exchange;
 
-    public function __construct($connection, $exchange_name, $routing_key = null, $opts = array())
+    public function __construct($connection, $exchange_name)
     {
         parent::__construct($connection);
-        $opts = array_merge(array("delivery_mode" => 2), $opts);
         $this->exchange = new \AMQPExchange($this->channel);
         $this->exchange->setName($exchange_name);
-        $this->routing_key = $routing_key;
-        $this->delivery_mode = $opts["delivery_mode"];
     }
 
     public function __destruct()
@@ -24,13 +18,19 @@ class Producer extends Channel
         $this->exchange = null;
     }
 
-    public function push($msg)
+    public function push($msg, $routing_key = null, $attrs = [])
     {
+        $attrs = array_merge(["delivery_mode" => 2], $attrs);
         if (empty($msg)) {
-            throw new \AMQPException("Попытка вставить пустое вообщение в очередь!");
+            throw new \AMQPException("Push empty message to queue is depricated!");
         }
-        if (false === $this->exchange->publish($msg, $this->routing_key, AMQP_NOPARAM, array("delivery_mode" => $this->delivery_mode))) {
-            throw new \AMQPException("Ошбика при вставке в очередь!");
+        if (false === $this->exchange->publish($msg, $routing_key, AMQP_NOPARAM, $attrs)) {
+            throw new \AMQPException("Error when pushing into queue!");
         }
+    }
+
+    public function handle()
+    {
+        return $this->exchange;
     }
 }

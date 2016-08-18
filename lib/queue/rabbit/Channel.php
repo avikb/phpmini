@@ -2,18 +2,17 @@
 
 namespace gib\queue\rabbit;
 
-
 class Channel implements \gib\util\Transactional
 {
     protected $connection;
     protected $channel;
 
-    public function __construct($connection, $params = [])
+    public function __construct($connection, $prefetchCount = null)
     {
         $this->connection = $connection;
-        $this->channel = new \AMQPChannel($connection->getConnection());
-        if (isset($params['prefetch_count'])) {
-            $this->channel->setPrefetchCount(intval($params['prefetch_count']));
+        $this->channel = new \AMQPChannel($connection->handle());
+        if (!empty($prefetchCount)) {
+            $this->channel->setPrefetchCount(intval($prefetchCount));
         }
     }
 
@@ -40,5 +39,15 @@ class Channel implements \gib\util\Transactional
     public function inTransaction()
     {
         return false;
+    }
+
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    public function handle()
+    {
+        return $this->channel;
     }
 }
