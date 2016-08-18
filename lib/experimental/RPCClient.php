@@ -1,6 +1,9 @@
 <?php
 
-namespace gib\queue\rabbit;
+namespace gib\experimental;
+
+use \gib\queue\rabbit\Producer;
+use \gib\queue\rabbit\Consumer;
 
 class RPCClient extends Producer
 {
@@ -17,8 +20,11 @@ class RPCClient extends Producer
     public function call($msg, $route_key = null, int $timeout = 0)
     {
         $this->push($msg, $route_key, ['reply_to' => $this->replyTo]);
-        $sleep = 100;
+        // TODO:
+        // use consume() mutch cool, but...
+        // consume multiplies consumers on queue...
         $sum = 0;
+        $sleep = 1000;
         while (true) {
             $msg = $this->consumer->pop(true);
             if ($msg) {
