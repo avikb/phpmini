@@ -34,8 +34,8 @@ class Consumer extends Channel
 
     public function consume($callback, bool $asObject = false)
     {
-        return $this->queue->consume(function ($env) use ($asObject) {
-            $ret = call_user_func($this->callback, $asObject ? $env : $env->getBody());
+        return $this->queue->consume(function ($env) use ($callback, $asObject) {
+            $ret = call_user_func($callback, $asObject ? $env : $env->getBody());
             $this->ack($env);
             return $ret;
         });
